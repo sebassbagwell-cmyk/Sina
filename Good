@@ -1,0 +1,124 @@
+
+function setup() {
+  noCanvas();
+
+  document.body.style.background = "#11111b";
+  document.body.style.color = "white";
+  document.body.style.fontFamily = "Arial";
+  document.body.style.padding = "12px";
+
+  let title = createElement("h2", "🌐 Mini Browser");
+  title.style("text-align", "center");
+  title.style("color", "#9182ff");
+
+  let bar = createDiv("");
+  bar.style("display", "flex");
+  bar.style("gap", "8px");
+  bar.style("margin-bottom", "10px");
+
+  let address = createInput("https://example.com");
+  address.style("flex", "1");
+  address.style("min-width", "0");
+  address.style("padding", "12px");
+  address.style("background", "#252535");
+  address.style("color", "white");
+  address.style("border", "1px solid #555");
+  address.style("border-radius", "8px");
+
+  let go = createButton("GO");
+  go.parent(bar);
+  address.parent(bar);
+
+  let status = createP("Enter a website URL");
+  status.style("text-align", "center");
+  status.style("color", "#aaa");
+
+  let browser = createDiv("");
+  browser.style("height", "65vh");
+  browser.style("background", "white");
+  browser.style("border-radius", "8px");
+  browser.style("overflow", "hidden");
+
+  let frame = createElement("iframe");
+  frame.parent(browser);
+  frame.attribute("title", "Website");
+  frame.style("width", "100%");
+  frame.style("height", "100%");
+  frame.style("border", "0");
+
+  function loadSite() {
+    let url = address.value().trim();
+
+    if (!url) {
+      status.html("Enter a URL first.");
+      return;
+    }
+
+    if (!/^https?:\/\//i.test(url)) {
+      url = "https://" + url;
+    }
+
+    try {
+      let parsed = new URL(url);
+
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        throw new Error();
+      }
+
+      address.value(parsed.href);
+      status.html("Loading " + parsed.hostname + "...");
+      frame.attribute("src", parsed.href);
+    } catch (e) {
+      status.html("Invalid URL.");
+    }
+  }
+
+  go.mousePressed(loadSite);
+
+  address.elt.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      loadSite();
+    }
+  });
+
+  let controls = createDiv("");
+  controls.style("display", "flex");
+  controls.style("gap", "8px");
+  controls.style("margin-top", "10px");
+
+  function addButton(label, action) {
+    let button = createButton(label);
+    button.parent(controls);
+    button.style("flex", "1");
+    button.style("padding", "12px");
+    button.style("background", "#29283a");
+    button.style("color", "white");
+    button.style("border", "0");
+    button.style("border-radius", "8px");
+    button.mousePressed(action);
+  }
+
+  addButton("← Back", function() {
+    try {
+      frame.elt.contentWindow.history.back();
+    } catch (e) {
+      status.html("Back unavailable.");
+    }
+  });
+
+  addButton("Forward →", function() {
+    try {
+      frame.elt.contentWindow.history.forward();
+    } catch (e) {
+      status.html("Forward unavailable.");
+    }
+  });
+
+  addButton("↻ Reload", function() {
+    try {
+      frame.elt.contentWindow.location.reload();
+    } catch (e) {
+      status.html("Reload unavailable.");
+    }
+  });
+}
